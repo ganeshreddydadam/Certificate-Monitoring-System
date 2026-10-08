@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>AI Certificate Analysis</title>
+
+    <style>
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6fa;
+        }
+
+        .header {
+            background: #182653;
+            color: white;
+            padding: 30px 50px;
+        }
+
+        .header h1 {
+            margin: 0;
+        }
+
+        .container {
+            padding: 35px 50px;
+        }
+
+        .certificate-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        .analysis-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        .analysis {
+            white-space: pre-wrap;
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 25px;
+            padding: 10px 18px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+
+        .risk {
+            font-weight: bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="header">
+
+    <h1>AI Certificate Security Analysis</h1>
+
+    <p>
+        AI-powered certificate security explanation
+    </p>
+
+</div>
+
+<div class="container">
+
+    <a href="/" class="back-button">
+        ← Back to Dashboard
+    </a>
+
+    <div class="certificate-card">
+
+        <h2 th:text="${certificate.fileName}">
+            Certificate
+        </h2>
+
+        <p>
+            <strong>Alias:</strong>
+            <span th:text="${certificate.alias}"></span>
+        </p>
+
+        <p>
+            <strong>Algorithm:</strong>
+            <span th:text="${certificate.algorithm}"></span>
+        </p>
+
+        <p>
+            <strong>Key Size:</strong>
+            <span th:text="${certificate.keySize}"></span>
+            bits
+        </p>
+
+        <p>
+            <strong>Days Remaining:</strong>
+            <span th:text="${certificate.daysRemaining}"></span>
+        </p>
+
+        <p>
+            <strong>Chain Status:</strong>
+            <span th:text="${certificate.chainStatus}"></span>
+        </p>
+
+        <p>
+            <strong>Risk Level:</strong>
+
+            <span class="risk"
+                  th:text="${certificate.riskLevel}">
+            </span>
+
+        </p>
+
+    </div>
+
+    <div class="analysis-card">
+
+        <h2>AI Security Analysis</h2>
+
+        <div class="analysis"
+             th:text="${analysis}">
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

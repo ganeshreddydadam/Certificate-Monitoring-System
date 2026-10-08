@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Certificate Monitoring Dashboard</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .header {
+            background: #ffffff;
+            padding: 28px 45px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #0f172a;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        /* =========================
+           CONTAINER
+        ========================= */
+
+        .container {
+            padding: 35px 55px;
+        }
+
+        /* =========================
+           SUMMARY CARDS
+        ========================= */
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 38px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 28px 35px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.08);
+            border-left: 7px solid;
+        }
+
+        .card.total {
+            border-left-color: #2563eb;
+        }
+
+        .card.low {
+            border-left-color: #16a34a;
+        }
+
+        .card.medium {
+            border-left-color: #f59e0b;
+        }
+
+        .card.high {
+            border-left-color: #dc2626;
+        }
+
+        .card-title {
+            color: #64748b;
+            font-size: 17px;
+            margin-bottom: 12px;
+        }
+
+        .card-number {
+            font-size: 34px;
+            font-weight: bold;
+            color: #0f172a;
+        }
+
+        /* =========================
+           SCAN ALL
+        ========================= */
+
+        .top-actions {
+            margin-bottom: 25px;
+        }
+
+        .scan-all {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 14px 28px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .scan-all:hover {
+            background: #1d4ed8;
+        }
+
+        /* =========================
+           TABLE
+        ========================= */
+
+        .table-container {
+            background: #ffffff;
+            border-radius: 10px;
+            overflow-x: auto;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.07);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+
+        th {
+            background: #eef2ff;
+            color: #0f172a;
+            padding: 17px 18px;
+            text-align: left;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 17px 18px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .certificate-name {
+            font-weight: bold;
+            color: #0f3460;
+        }
+
+        /* =========================
+           INITIAL CERTIFICATE LIST
+        ========================= */
+
+        .certificate-list-table {
+            min-width: 0;
+        }
+
+        .certificate-list-table th {
+            background: #eef2ff;
+        }
+
+        .certificate-list-table td {
+            padding: 18px;
+        }
+
+        .certificate-list-table .certificate-name {
+            font-size: 15px;
+        }
+
+        /* =========================
+           SCAN BUTTON
+        ========================= */
+
+        .scan-button {
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 8px 17px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .scan-button:hover {
+            background: #334155;
+        }
+
+        /* =========================
+           AI ANALYSIS BUTTON
+        ========================= */
+
+        .ai-button {
+            display: inline-block;
+            background: #7c3aed;
+            color: white;
+            text-decoration: none;
+            padding: 8px 13px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 6px;
+        }
+
+        .ai-button:hover {
+            background: #6d28d9;
+        }
+
+        /* =========================
+           RISK
+        ========================= */
+
+        .risk {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .risk-low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .risk-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .risk-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* =========================
+           CHAIN
+        ========================= */
+
+        .valid {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .invalid {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .self-signed {
+            color: #d97706;
+            font-weight: bold;
+        }
+
+        /* =========================
+           PENDING CERTIFICATES
+        ========================= */
+
+        .pending-title {
+            margin: 30px 0 15px;
+            font-size: 18px;
+            color: #334155;
+        }
+
+        .pending-table {
+            min-width: 0;
+        }
+
+        /* =========================
+           EMPTY
+        ========================= */
+
+        .empty {
+            text-align: center;
+            padding: 50px;
+            color: #64748b;
+        }
+
+        .not-scanned {
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        /* =========================
+           CERTIFICATE AI AGENT
+           PREVIOUS WORKING UI
+        ========================= */
+
+        #certificate-ai-widget {
+            position: fixed;
+            right: 25px;
+            bottom: 25px;
+            z-index: 99999;
+            font-family: Arial, sans-serif;
+        }
+
+        /* =========================
+           FLOATING AI BUTTON
+        ========================= */
+
+        #ai-agent-button {
+            width: 62px;
+            height: 62px;
+
+            border: none;
+            border-radius: 50%;
+
+            background: #6f42c1;
+            color: white;
+
+            font-size: 30px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            transition: 0.2s;
+        }
+
+        #ai-agent-button:hover {
+            transform: scale(1.08);
+            background: #59339d;
+        }
+
+        .ai-icon {
+            line-height: 1;
+        }
+
+        /* =========================
+           AI CHAT WINDOW
+        ========================= */
+
+        #ai-chat-window {
+            display: none;
+
+            position: absolute;
+
+            right: 0;
+            bottom: 75px;
+
+            width: 380px;
+            height: 520px;
+
+            background: white;
+
+            border-radius: 14px;
+
+            box-shadow:
+                0 8px 30px
+                rgba(0,0,0,0.25);
+
+            overflow: hidden;
+
+            border: 1px solid #ddd;
+        }
+
+        /* =========================
+           CHAT HEADER
+        ========================= */
+
+        .ai-chat-header {
+            height: 65px;
+
+            background: #6f42c1;
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 18px;
+        }
+
+        .ai-chat-header strong {
+            display: block;
+            font-size: 16px;
+        }
+
+        .ai-chat-header small {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        .close-ai {
+            background: transparent;
+            border: none;
+
+            color: white;
+
+            font-size: 27px;
+
+            cursor: pointer;
+        }
+
+        /* =========================
+           AI MESSAGES
+        ========================= */
+
+        #ai-messages {
+            height: 390px;
+
+            padding: 15px;
+
+            overflow-y: auto;
+
+            background: #f8fafc;
+        }
+
+        .ai-message {
+            background: white;
+
+            padding: 12px 14px;
+
+            border-radius: 10px;
+
+            margin-bottom: 12px;
+
+            color: #334155;
+
+            font-size: 14px;
+
+            line-height: 1.5;
+
+            box-shadow:
+                0 2px 8px
+                rgba(0,0,0,0.06);
+
+            white-space: pre-wrap;
+        }
+
+        .user-message {
+            background: #ede9fe;
+
+            padding: 12px 14px;
+
+            border-radius: 10px;
+
+            margin-bottom: 12px;
+
+            color: #4c1d95;
+
+            font-size: 14px;
+
+            line-height: 1.5;
+
+            white-space: pre-wrap;
+        }
+
+        /* =========================
+           AI INPUT
+        ========================= */
+
+        .ai-input-area {
+            height: 65px;
+
+            border-top: 1px solid #ddd;
+
+            display: flex;
+            align-items: center;
+
+            padding: 10px;
+
+            background: white;
+        }
+
+        #ai-question {
+            flex: 1;
+
+            height: 42px;
+
+            border: 1px solid #cbd5e1;
+
+            border-radius: 8px;
+
+            padding: 0 12px;
+
+            outline: none;
+
+            font-size: 14px;
+        }
+
+        #ai-question:focus {
+            border-color: #6f42c1;
+        }
+
+        #ai-send {
+            width: 44px;
+            height: 42px;
+
+            margin-left: 8px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: #6f42c1;
+
+            color: white;
+
+            cursor: pointer;
+
+            font-size: 18px;
+        }
+
+        #ai-send:hover {
+            background: #59339d;
+        }
+
+        #ai-send:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media(max-width: 1000px) {
+
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .container {
+                padding: 25px;
+            }
+        }
+
+        @media(max-width: 600px) {
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            #ai-chat-window {
+                right: 10px;
+                bottom: 75px;
+                width: calc(100vw - 20px);
+                height: 520px;
+            }
+
+            #certificate-ai-widget {
+                right: 15px;
+                bottom: 15px;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<div class="header">
+
+    <h1>
+        Certificate Monitoring Dashboard
+    </h1>
+
+    <p>
+        Certificate lifecycle and security monitoring
+    </p>
+
+</div>
+
+
+<div class="container">
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+    ====================================================== -->
+
+    <div class="cards">
+
+        <div class="card total">
+
+            <div class="card-title">
+                Total Certificates
+            </div>
+
+            <div class="card-number"
+                 th:text="${total}">
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card low">
+
+            <div class="card-title">
+                Low Risk
+            </div>
+
+            <div class="card-number"
+                 th:text="${low}">
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card medium">
+
+            <div class="card-title">
+                Medium Risk
+            </div>
+
+            <div class="card-number"
+                 th:text="${medium}">
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card high">
+
+            <div class="card-title">
+                High Risk
+            </div>
+
+            <div class="card-number"
+                 th:text="${high}">
+                0
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SCAN ALL
+    ====================================================== -->
+
+    <div class="top-actions">
+
+        <form action="/scan"
+              method="post">
+
+            <button type="submit"
+                    class="scan-all">
+
+                Scan All Certificates
+
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- =====================================================
+         INITIAL STATE
+         ONLY CERTIFICATE + SCAN
+    ====================================================== -->
+
+    <div class="table-container"
+         th:if="${#lists.isEmpty(certificates)}">
+
+        <table class="certificate-list-table">
+
+            <thead>
+
+            <tr>
+
+                <th>
+                    Certificate
+                </th>
+
+                <th>
+                    Action
+                </th>
+
+            </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            <tr th:each="fileName : ${certificateFiles}">
+
+                <td class="certificate-name"
+                    th:text="${fileName}">
+                    certificate.crt
+                </td>
+
+
+                <td>
+
+                    <form th:action="@{/scan/{fileName}(fileName=${fileName})}"
+                          method="post"
+                          style="display:inline;">
+
+                        <button type="submit"
+                                class="scan-button">
+
+                            Scan
+
+                        </button>
+
+                    </form>
+
+                </td>
+
+            </tr>
+
+
+            <tr th:if="${#lists.isEmpty(certificateFiles)}">
+
+                <td colspan="2"
+                    class="empty">
+
+                    No certificate files found in the repository.
+
+                </td>
+
+            </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- =====================================================
+         SCANNED CERTIFICATES
+    ====================================================== -->
+
+    <div class="table-container"
+         th:if="${!#lists.isEmpty(certificates)}">
+
+        <table>
+
+            <thead>
+
+            <tr>
+
+                <th>Certificate</th>
+                <th>Alias</th>
+                <th>Subject</th>
+                <th>Issuer</th>
+                <th>Algorithm</th>
+                <th>Key Size</th>
+                <th>Valid From</th>
+                <th>Valid Until</th>
+                <th>Days Left</th>
+                <th>Chain</th>
+                <th>Risk</th>
+                <th>Action</th>
+
+            </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            <tr th:each="certificate : ${certificates}">
+
+                <td class="certificate-name"
+                    th:text="${certificate.fileName}">
+                    certificate.crt
+                </td>
+
+
+                <td th:text="${certificate.alias}">
+                    -
+                </td>
+
+
+                <td th:text="${certificate.subject}">
+                    -
+                </td>
+
+
+                <td th:text="${certificate.issuer}">
+                    -
+                </td>
+
+
+                <td th:text="${certificate.algorithm}">
+                    -
+                </td>
+
+
+                <td th:text="${certificate.keySize}">
+                    -
+                </td>
+
+
+                <td th:text="${certificate.validFrom}">
+                    -
+                </td>
+
+
+                <td th:text="${certificate.validUntil}">
+                    -
+                </td>
+
+
+                <td th:text="${certificate.daysRemaining}">
+                    -
+                </td>
+
+
+                <td>
+
+                    <span th:if="${certificate.chainStatus == 'VALID'}"
+                          class="valid"
+                          th:text="${certificate.chainStatus}">
+                        VALID
+                    </span>
+
+
+                    <span th:if="${certificate.chainStatus == 'INVALID'}"
+                          class="invalid"
+                          th:text="${certificate.chainStatus}">
+                        INVALID
+                    </span>
+
+
+                    <span th:if="${certificate.chainStatus == 'SELF_SIGNED'}"
+                          class="self-signed"
+                          th:text="${certificate.chainStatus}">
+                        SELF_SIGNED
+                    </span>
+
+
+                    <span th:if="${certificate.chainStatus != 'VALID'
+                                  and certificate.chainStatus != 'INVALID'
+                                  and certificate.chainStatus != 'SELF_SIGNED'}"
+                          th:text="${certificate.chainStatus}">
+                        -
+                    </span>
+
+                </td>
+
+
+                <td>
+
+                    <span th:if="${certificate.riskLevel == 'LOW'}"
+                          class="risk risk-low">
+
+                        LOW
+
+                    </span>
+
+
+                    <span th:if="${certificate.riskLevel == 'MEDIUM'}"
+                          class="risk risk-medium">
+
+                        MEDIUM
+
+                    </span>
+
+
+                    <span th:if="${certificate.riskLevel == 'HIGH'}"
+                          class="risk risk-high">
+
+                        HIGH
+
+                    </span>
+
+
+                    <span th:if="${certificate.riskLevel == null}">
+                        -
+                    </span>
+
+                </td>
+
+
+                <td>
+
+                    <!-- SCAN AGAIN -->
+
+                    <form th:action="@{/scan/{fileName}(fileName=${certificate.fileName})}"
+                          method="post"
+                          style="display:inline;">
+
+                        <button type="submit"
+                                class="scan-button">
+
+                            Scan
+
+                        </button>
+
+                    </form>
+
+
+                    <!-- AI ANALYSIS -->
+
+                    <a th:href="@{/certificate/{id}/ai-analysis(id=${certificate.id})}"
+                       class="ai-button">
+
+                        AI Analysis
+
+                    </a>
+
+                </td>
+
+            </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- =====================================================
+         UNSCANNED CERTIFICATES AFTER INDIVIDUAL SCAN
+    ====================================================== -->
+
+    <div th:if="${!#lists.isEmpty(certificates)
+                 and certificateFiles.size() > certificates.size()}">
+
+        <h3 class="pending-title">
+
+            Certificates Not Scanned
+
+        </h3>
+
+
+        <div class="table-container">
+
+            <table class="pending-table">
+
+                <thead>
+
+                <tr>
+
+                    <th>
+                        Certificate
+                    </th>
+
+                    <th>
+                        Action
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                <tr th:each="fileName : ${certificateFiles}"
+                    th:if="${scannedCertificateMap[fileName] == null}">
+
+                    <td class="certificate-name"
+                        th:text="${fileName}">
+                        certificate.crt
+                    </td>
+
+
+                    <td>
+
+                        <form th:action="@{/scan/{fileName}(fileName=${fileName})}"
+                              method="post"
+                              style="display:inline;">
+
+                            <button type="submit"
+                                    class="scan-button">
+
+                                Scan
+
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+<!-- =========================================================
+     CERTIFICATE AI AGENT
+========================================================= -->
+
+<div id="certificate-ai-widget">
+
+
+    <!-- FLOATING BUTTON -->
+
+    <button
+        type="button"
+        id="ai-agent-button"
+        onclick="toggleAIAgent()"
+        title="Certificate AI Agent">
+
+        <span class="ai-icon">
+            ✦
+        </span>
+
+    </button>
+
+
+    <!-- CHAT WINDOW -->
+
+    <div id="ai-chat-window">
+
+
+        <!-- HEADER -->
+
+        <div class="ai-chat-header">
+
+            <div>
+
+                <strong>
+                    Certificate AI Agent
+                </strong>
+
+                <small>
+                    Certificate Security Assistant
+                </small>
+
+            </div>
+
+
+            <button
+                type="button"
+                onclick="toggleAIAgent()"
+                class="close-ai">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <!-- EMPTY INITIALLY -->
+
+        <div id="ai-messages">
+        </div>
+
+
+        <!-- INPUT -->
+
+        <div class="ai-input-area">
+
+            <input
+                type="text"
+                id="ai-question"
+                placeholder="Ask about your certificates..."
+                autocomplete="off">
+
+
+            <button
+                type="button"
+                onclick="askCertificateAI()"
+                id="ai-send"
+                title="Send">
+
+                ➤
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+    /* =========================================
+       OPEN / CLOSE AI CHAT
+    ========================================= */
+
+    function toggleAIAgent() {
+
+        const chatWindow =
+            document.getElementById("ai-chat-window");
+
+
+        if (chatWindow.style.display === "block") {
+
+            chatWindow.style.display = "none";
+
+        } else {
+
+            chatWindow.style.display = "block";
+
+            document
+                .getElementById("ai-question")
+                .focus();
+
+        }
+
+    }
+
+
+    /* =========================================
+       ASK CERTIFICATE AI
+    ========================================= */
+
+    async function askCertificateAI() {
+
+        const input =
+            document.getElementById("ai-question");
+
+        const messages =
+            document.getElementById("ai-messages");
+
+        const sendButton =
+            document.getElementById("ai-send");
+
+        const question =
+            input.value.trim();
+
+
+        if (!question) {
+            return;
+        }
+
+
+        /* USER MESSAGE */
+
+        const userMessage =
+            document.createElement("div");
+
+        userMessage.className =
+            "user-message";
+
+        userMessage.textContent =
+            question;
+
+        messages.appendChild(
+            userMessage
+        );
+
+
+        input.value = "";
+
+
+        /* DISABLE SEND */
+
+        sendButton.disabled = true;
+
+
+        /* THINKING MESSAGE */
+
+        const aiMessage =
+            document.createElement("div");
+
+        aiMessage.className =
+            "ai-message";
+
+        aiMessage.textContent =
+            "Thinking...";
+
+        messages.appendChild(
+            aiMessage
+        );
+
+
+        messages.scrollTop =
+            messages.scrollHeight;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/ai-agent/ask",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/x-www-form-urlencoded"
+                        },
+
+                        body:
+                            "question=" +
+                            encodeURIComponent(question)
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "AI request failed"
+                );
+
+            }
+
+
+            const answer =
+                await response.text();
+
+
+            aiMessage.textContent =
+                answer;
+
+        }
+
+        catch (error) {
+
+            aiMessage.textContent =
+                "Unable to connect to Certificate AI Agent.";
+
+        }
+
+
+        sendButton.disabled = false;
+
+
+        messages.scrollTop =
+            messages.scrollHeight;
+
+    }
+
+
+    /* =========================================
+       ENTER KEY
+    ========================================= */
+
+    document
+        .getElementById("ai-question")
+        .addEventListener(
+            "keydown",
+            function(event) {
+
+                if (event.key === "Enter") {
+
+                    event.preventDefault();
+
+                    askCertificateAI();
+
+                }
+
+            }
+        );
+
+</script>
+
+
+</body>
+
+</html>
